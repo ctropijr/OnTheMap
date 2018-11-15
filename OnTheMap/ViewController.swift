@@ -31,17 +31,37 @@ class ViewController: UIViewController {
         let session = URLSession.shared
         
         
-        let task = session.dataTask(with: request) { (data, error, result ) in
+        let task = session.dataTask(with: request) { (data, response, error ) in
             
             let alert = UIAlertController(title: "The Login has failed", message: "Try Again", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: nil))
             
-            if error != nil {
-                self.present(alert, animated: true)
-            }
             let range = Range(5..<data!.count)
             let newData = data?.subdata(in: range) /* subset response data! */
             print(String(data: newData!, encoding: .utf8)!)
+            
+            let parsedResult: [String:AnyObject]!
+            
+            do {
+                parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String: AnyObject]
+            } catch {
+                print("The data was unable to be parsed")
+                return
+            }
+            
+            guard let statusCode = parsedResult["status_code"] as? Int
+                else {
+                    print("There was no error so therefore, no status code was returned")
+                    return
+                }
+            if statusCode == 400 {
+                self.present(alert, animated: true)
+            } else if statusCode == 401 {
+                self.present(alert, animated: true)
+            }
+            
+            
+            
             
         }
         task.resume()

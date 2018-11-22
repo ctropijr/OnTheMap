@@ -86,8 +86,6 @@ class ViewController: UIViewController {
            
         }
         task.resume()
-        print(appdelegate.sessionID)
-        
     }
     
     @IBAction func LoginPressed(_ sender: Any) {

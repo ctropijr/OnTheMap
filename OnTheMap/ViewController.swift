@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import SafariServices
 
 class ViewController: UIViewController {
     
@@ -14,38 +15,40 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var passwordTextField: UITextField!
     
+    @IBOutlet weak var loginButton: UIButton!
     
+    let appdelegate = AppDelegate()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     }
     
-    func getSessionID() {
-        var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
+    func authenticateUser() {
         
-       request.httpMethod = "Post"
+    var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
+        
+       request.httpMethod = "POST"
        request.addValue("application/json", forHTTPHeaderField: "Accept")
        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = {"udacity\": {\"username\": \"\(loginTextField.text!)\", \"password\": \"\(passwordTextField.text!)"}().data(using: .utf8)
-        let session = URLSession.shared
+        request.httpBody = "{\"udacity\": {\"username\": \"\(loginTextField.text!)\", \"password\": \"\(passwordTextField.text!)\"}}".data(using: .utf8)
         
+        let session = URLSession.shared
         
         let task = session.dataTask(with: request) { (data, response, error ) in
             
-            let alert = UIAlertController(title: "The Login has failed", message: "Try Again", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: nil))
+            let loginAlert = UIAlertController(title: "You have entered the wrong username or password. Please try again.", message: "Try Again", preferredStyle: .alert)
+            loginAlert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: nil))
             
             let range = Range(5..<data!.count)
             let newData = data?.subdata(in: range) /* subset response data! */
-            print(String(data: newData!, encoding: .utf8)!)
             
-            let parsedResult: [String:AnyObject]!
+            let parsedResult: [String: AnyObject]!
             
             do {
-                parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String: AnyObject]
+                parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
             } catch {
-                print("The data was unable to be parsed")
+                print(error)
                 return
             }
             
@@ -55,17 +58,58 @@ class ViewController: UIViewController {
                     return
                 }
             if statusCode == 400 {
-                self.present(alert, animated: true)
+                self.present(loginAlert, animated: true)
             } else if statusCode == 401 {
-                self.present(alert, animated: true)
+                self.present(loginAlert, animated: true)
             }
             
-            
-            
-            
+            guard let parsedArray = parsedResult as? [[String: AnyObject]]
+                else {
+                    print("the array did not parse")
+                    return
+            }
+            print(parsedArray)
+            for object in parsedArray {
+                guard let session = object["session"] as? [[String:AnyObject]] else {
+                    print("The session is not returning")
+                    return
+                }
+                for parsedId in session {
+                    guard let sessionID = parsedId["id"] as? Int
+                        else {
+                        print("The ID could not be parsed")
+                        return
+                    }
+                    self.appdelegate.sessionID = sessionID
+                }
+            }
+           
         }
         task.resume()
+        print(appdelegate.sessionID)
+        
     }
+    
+    @IBAction func LoginPressed(_ sender: Any) {
+      loginButton.isEnabled = false
+      loginButton.setTitle("Loading...", for: .normal)
+       authenticateUser()
+    }
+    
+    @IBAction func SignUpPressed(_ sender: Any) {
+        let openURL = "https://auth.udacity.com/sign-up"
+        if let url = URL(string: openURL) {
+            
+            //Use safari controller so that the app launches website in view instead of outside launch.
+            let safariController = SFSafariViewController(url: url)
+            present(safariController, animated: true, completion: nil)
+            
+        }
+        
+        
+      
+    }
+    
 }
     
 

@@ -63,14 +63,14 @@ class ViewController: UIViewController {
             }
             
             guard let session = parsedResult["session"] as? [String: AnyObject],
-            let sessionID = session["ID"] as? Int
+            let sessionID = session["id"] as? Int
                 else {
                     print("The sessionId was not parsed")
                     return
             }
-            print(sessionID)
-           
+            self.appdelegate.sessionID = sessionID
         }
+       print(appdelegate.sessionID!)
         task.resume()
     }
     

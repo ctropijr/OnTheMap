@@ -27,7 +27,6 @@ class ViewController: UIViewController {
     func authenticateUser() {
         
     var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
-        
        request.httpMethod = "POST"
        request.addValue("application/json", forHTTPHeaderField: "Accept")
        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -40,13 +39,13 @@ class ViewController: UIViewController {
             let loginAlert = UIAlertController(title: "You have entered the wrong username or password. Please try again.", message: "Try Again", preferredStyle: .alert)
             loginAlert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: nil))
             
-            let range = Range(5..<data!.count)
+            let range = 5..<data!.count
             let newData = data?.subdata(in: range) /* subset response data! */
             
             let parsedResult: [String: AnyObject]!
             
             do {
-                parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
+                parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as? [String:AnyObject]
             } catch {
                 print(error)
                 return
@@ -63,27 +62,13 @@ class ViewController: UIViewController {
                 self.present(loginAlert, animated: true)
             }
             
-            guard let parsedArray = parsedResult as? [[String: AnyObject]]
+            guard let session = parsedResult["session"] as? [String: AnyObject],
+            let sessionID = session["ID"] as? Int
                 else {
-                    print("the array did not parse")
+                    print("The sessionId was not parsed")
                     return
             }
-            print(parsedArray)
-            for object in parsedArray {
-                guard let session = object["session"] as? [[String:AnyObject]] else {
-                    print("The session is not returning")
-                    return
-                }
-                for parsedId in session {
-                    guard let sessionID = parsedId["id"] as? Int
-                        else {
-                        print("The ID could not be parsed")
-                        return
-                    }
-                    self.appdelegate.sessionID = sessionID
-                    print(parsedId)
-                }
-            }
+            print(sessionID)
            
         }
         task.resume()

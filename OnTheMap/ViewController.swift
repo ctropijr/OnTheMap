@@ -81,6 +81,7 @@ class ViewController: UIViewController {
                         return
                     }
                     self.appdelegate.sessionID = sessionID
+                    print(parsedId)
                 }
             }
            

@@ -70,14 +70,15 @@ class ViewController: UIViewController {
             }
             self.appdelegate.sessionID = sessionID
         }
-       print(appdelegate.sessionID!)
         task.resume()
     }
     
     @IBAction func LoginPressed(_ sender: Any) {
       loginButton.isEnabled = false
       loginButton.setTitle("Loading...", for: .normal)
-       authenticateUser()
+      authenticateUser()
+      performSegue(withIdentifier: "pushToMap", sender: self)
+        
     }
     
     @IBAction func SignUpPressed(_ sender: Any) {

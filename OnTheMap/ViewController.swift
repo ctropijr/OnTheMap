@@ -16,10 +16,10 @@ class ViewController: UIViewController {
     @IBOutlet weak var passwordTextField: UITextField!
     
     @IBOutlet weak var loginButton: UIButton!
-    
-    let appdelegate = AppDelegate()
+
     
     override func viewDidLoad() {
+        loginButton.isEnabled = true
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     }
@@ -50,6 +50,7 @@ class ViewController: UIViewController {
                 print(error)
                 return
             }
+            print(parsedResult)
             
             guard let statusCode = parsedResult["status_code"] as? Int
                 else {
@@ -62,16 +63,11 @@ class ViewController: UIViewController {
                 self.present(loginAlert, animated: true)
             }
             
-            guard let session = parsedResult["session"] as? [String: AnyObject],
-            let sessionID = session["id"] as? Int
-                else {
-                    print("The sessionId was not parsed")
-                    return
-            }
-            self.appdelegate.sessionID = sessionID
         }
         task.resume()
     }
+    
+   
     
     @IBAction func LoginPressed(_ sender: Any) {
       loginButton.isEnabled = false

@@ -23,10 +23,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
 
     @IBAction func logoutPressed(_ sender: Any) {
+        logout()
         performSegue(withIdentifier: "logoutPressed", sender: self)
     }
     
     @IBAction func refreshPressed(_ sender: Any) {
+        getMultipleLocations()
     }
     
     @IBAction func addPressed(_ sender: Any) {
@@ -34,7 +36,35 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     
     func logout() {
+            var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
+            request.httpMethod = "DELETE"
+            var xsrfCookie: HTTPCookie? = nil
+            let sharedCookieStorage = HTTPCookieStorage.shared
+            for cookie in sharedCookieStorage.cookies! {
+                if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
+            }
+            if let xsrfCookie = xsrfCookie {
+                request.setValue(xsrfCookie.value, forHTTPHeaderField: "X-XSRF-TOKEN")
+            }
+            let session = URLSession.shared
+            let task = session.dataTask(with: request) { data, response, error in
+                if error != nil {
+                    print(error)
+                    return
+                }
+                let range = 5..<data!.count
+                let newData = data?.subdata(in: range)
+                print(String(data: newData!, encoding: .utf8)!)
+            }
+            task.resume()
+        }
+    
+    func getMultipleLocations() {
+        taskForGETMethod(url: URL(string:"https://parse.udacity.com/parse/classes/StudentLocation?limit=100")!)
+       
         
-    }
+}
+
+
 
 }
